@@ -26,7 +26,7 @@ jobs:
           echo "Validating PR..."
       
       - name: Build with Maven
-        run: mvn -B clean compile
+        run: mvn -B clean install -DskipTests
       
       - name: Run tests
         run: mvn -B test
