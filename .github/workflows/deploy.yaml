@@ -56,9 +56,9 @@ jobs:
     needs: prepare-deployment
     runs-on: ubuntu-latest
     environment: ${{ needs.prepare-deployment.outputs.environment }}
-    strategy:
-      matrix:
-        service: ${{ fromJson(format('["{0}"]', join(split(needs.prepare-deployment.outputs.services, ','), '","'))) }}
+ #   strategy:
+ #     matrix:
+ #       service: ${{ fromJson('["' + replace(needs.prepare-deployment.outputs.services, ',', '","') + '"]') }}
     
     steps:
       - name: Checkout code
