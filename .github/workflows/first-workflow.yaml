@@ -32,7 +32,7 @@ jobs:
     needs: run-shell-commands
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: Validate project structure
         run: |
@@ -42,6 +42,7 @@ jobs:
           [ -d "service-api" ] && echo "✅ service-api module exists" || echo "❓ service-api not found"
           [ -d "user-service" ] && echo "✅ user-service module exists" || echo "❓ user-service not found"
           [ -d "product-service" ] && echo "✅ product-service module exists" || echo "❓ product-service not found"
+          [ -d "web-app" ] && echo "✅ web-app module exists" || echo "❓ web-app not found"
       
       - name: List project structure
         run: |
