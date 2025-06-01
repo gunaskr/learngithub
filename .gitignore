@@ -1,0 +1,97 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Compiled class files
+*.class
+
+# Log files
+*.log
+logs/
+log/
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# JVM crash logs
+hs_err_pid*
+replay_pid*
+
+# Eclipse
+.settings/
+.classpath
+.project
+.factorypath
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+
+# VS Code
+.vscode/
+.code-workspace
+
+# Spring Boot
+spring-boot-*.pid
+
+# Application properties with sensitive information
+**/application-*.yml
+**/application-*.properties
+!**/application-example.yml
+!**/application-example.properties
+
+# Backup files
+*.backup
+*.bak
+
+# H2 database files
+*.db
+*.mv.db
+*.trace.db
+
+# Local development environment files
+.env
+.env.local
+
+# Misc
+.DS_Store
+Thumbs.db
+
+# Generated files
+bin/
+gen/
+out/
+
+# Gradle files (if you use Gradle alongside Maven)
+.gradle/
+build/
+
+# Node modules (if you have any frontend code in your monorepo)
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log

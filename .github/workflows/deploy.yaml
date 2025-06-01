@@ -1,0 +1,100 @@
+name: Java Monorepo Deployment
+
+on:
+  workflow_run:
+    workflows: ["Java CI with Maven"]
+    branches: [main, master]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+      services:
+        description: 'Services to deploy (comma-separated)'
+        required: false
+        default: 'all'
+
+env:
+  DEFAULT_ENVIRONMENT: dev
+
+jobs:
+  prepare-deployment:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      services: ${{ steps.set-services.outputs.services }}
+    
+    steps:
+      - name: Set environment
+        id: set-env
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          else
+            echo "environment=$DEFAULT_ENVIRONMENT" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Set services to deploy
+        id: set-services
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.services }}" != "all" ]]; then
+            echo "services=${{ github.event.inputs.services }}" >> $GITHUB_OUTPUT
+          else
+            echo "services=user-service,product-service,web-app" >> $GITHUB_OUTPUT
+          fi
+  
+  deploy-services:
+    needs: prepare-deployment
+    runs-on: ubuntu-latest
+    environment: ${{ needs.prepare-deployment.outputs.environment }}
+    strategy:
+      matrix:
+        service: ${{ fromJson(format('["{0}"]', join(split(needs.prepare-deployment.outputs.services, ','), '","'))) }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: java-artifacts
+          path: artifacts
+      
+      - name: Deploy ${{ matrix.service }}
+        run: |
+          echo "Deploying ${{ matrix.service }} to ${{ needs.prepare-deployment.outputs.environment }} environment"
+          # Example deployment commands:
+          # - Copy artifacts to server
+          # - Restart service
+          # - Verify deployment
+          
+          # Simulating deployment:
+          echo "JAR file found: $(find artifacts -name "${{ matrix.service }}*.jar")"
+          echo "Deployment of ${{ matrix.service }} completed successfully"
+      
+      - name: Deployment notification
+        if: success()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_CHANNEL: deployments
+          SLACK_TITLE: Deployment Successful
+          SLACK_MESSAGE: "${{ matrix.service }} deployed to ${{ needs.prepare-deployment.outputs.environment }}"
+          SLACK_COLOR: good

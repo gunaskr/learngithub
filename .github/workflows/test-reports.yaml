@@ -1,0 +1,65 @@
+name: Test Reports
+
+on:
+  workflow_run:
+    workflows: ["Java CI with Maven", "Pull Request Validation"]
+    types:
+      - completed
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday at midnight
+  workflow_dispatch: {}  # Allow manual triggering
+
+jobs:
+  generate-reports:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: Run tests with reports
+        run: mvn -B test site
+      
+      - name: Publish Test Report
+        uses: actions/upload-artifact@v3
+        if: success() || failure()  # Run even if tests fail
+        with:
+          name: test-reports
+          path: |
+            **/target/site/
+            **/target/surefire-reports/
+            **/target/failsafe-reports/
+      - name: Generate JaCoCo Coverage Report
+        run: mvn -B jacoco:report
+      
+      - name: Publish Coverage Report
+        uses: actions/upload-artifact@v3
+        if: success() || failure()
+        with:
+          name: coverage-report
+          path: "**/target/site/jacoco/"
+      
+      - name: Aggregate Reports
+        run: |
+          mkdir -p reports
+          find . -type d -path "*/target/site" -exec cp -r {} reports/ \;
+          find . -type d -path "*/target/surefire-reports" -exec cp -r {} reports/ \;
+          find . -type d -path "*/target/failsafe-reports" -exec cp -r {} reports/ \;
+      
+      - name: Deploy Reports to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./reports
+          destination_dir: reports/${{ github.sha }}
+          enable_jekyll: false
+          allow_empty_commit: false
+          keep_files: true
+          full_commit_message: Automated test reports for ${{ github.sha }}

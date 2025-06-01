@@ -1,14 +1,49 @@
-name: First Worflow
-on: [push]
+name: First Workflow (Java Monorepo Example)
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+      - master
+  schedule:
+    - cron: '0 0 * * 1'  # Run every Monday at midnight
 
 jobs:
+  # Job to demonstrate basic GitHub Actions features
   run-shell-commands:
     runs-on: ubuntu-latest
     steps:
-      - name: echo a string
-        run: echo "Hello, World!"
+      - name: Echo a string
+        run: echo "Hello, Java Monorepo World!"
 
-      - name: Multiline Command
+      - name: Show environment info
         run: |
-          node -v
-          npm -v
+          java -version
+          mvn --version
+          echo "GitHub workspace: $GITHUB_WORKSPACE"
+          echo "GitHub actor: $GITHUB_ACTOR"
+          echo "GitHub event: ${{ github.event_name }}"
+  
+  # Job to validate the structure of the monorepo
+  validate-monorepo:
+    runs-on: ubuntu-latest
+    needs: run-shell-commands
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Validate project structure
+        run: |
+          echo "Validating monorepo structure..."
+          [ -f "pom.xml" ] && echo "✅ Parent POM exists" || (echo "❌ Parent POM missing" && exit 1)
+          [ -d "common-lib" ] && echo "✅ common-lib module exists" || echo "❓ common-lib not found"
+          [ -d "service-api" ] && echo "✅ service-api module exists" || echo "❓ service-api not found"
+          [ -d "user-service" ] && echo "✅ user-service module exists" || echo "❓ user-service not found"
+          [ -d "product-service" ] && echo "✅ product-service module exists" || echo "❓ product-service not found"
+      
+      - name: List project structure
+        run: |
+          echo "Monorepo structure:"
+          find . -type f -name "pom.xml" | sort
